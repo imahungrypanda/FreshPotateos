@@ -37,8 +37,11 @@ function filmAverageRating(reviews) {
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
   let filmId = +req.params.id,
-      limit = 0,
-      offset = 0;
+      limit = +req.query.limit || 10,
+      offset = req.query.offset === undefined ? 0 : +req.query.offset;
+
+      // console.log(limit);
+      // console.log(req.query);
 
   if (typeof filmId === 'number') {
     sqlite.get('SELECT * FROM films WHERE id = ?', filmId)
@@ -58,8 +61,13 @@ function getFilmRecommendations(req, res) {
               request(`http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${filmIds.join(',')}`, function (error, response, body) {
                 let reviews = JSON.parse(body).filter(film =>
                   film.reviews.length > 4 && filmAverageRating(film.reviews) >= 4
-                )
+                ),
                     recommendations = [];
+
+                    if (offset > 0) {
+                      reviews = reviews.slice(offset);
+                    }
+                    reviews = reviews.slice(0, limit);
 
                     reviews.forEach(review => {
                       let recommend = {
@@ -78,8 +86,8 @@ function getFilmRecommendations(req, res) {
                     res.status(200).send(JSON.stringify({
                       recommendations: recommendations,
                       meta: {
-                        limit: 0,
-                        offset: 0
+                        limit: limit,
+                        offset: offset
                       }
                     }));
               })
