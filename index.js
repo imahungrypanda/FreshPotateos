@@ -14,6 +14,7 @@ Promise.resolve()
 
 // ROUTES
 app.get('/films/:id/recommendations', getFilmRecommendations);
+app.get('*', (req, res) => res.status(404).send({ message: "Unavaiable route" }));
 
 function dateRange(date) {
   let date1,
@@ -39,9 +40,6 @@ function getFilmRecommendations(req, res) {
   let filmId = +req.params.id,
       limit = +req.query.limit || 10,
       offset = req.query.offset === undefined ? 0 : +req.query.offset;
-
-      // console.log(limit);
-      // console.log(req.query);
 
   if (typeof filmId === 'number') {
     sqlite.get('SELECT * FROM films WHERE id = ?', filmId)
