@@ -37,7 +37,12 @@ function getFilmRecommendations(req, res) {
     sqlite.get('SELECT * FROM films WHERE id = ?', filmId)
      		.then(film => {
           let dates = dateRange(film.release_date);
-          res.status(200).send(film);
+
+          sqlite.all('SELECT films.id, films.title, films.release_date, name AS genre FROM films, genres WHERE genre_id = ? AND release_date BETWEEN ? AND ? AND genres.id = films.genre_id', film.genre_id, dates[0], dates[1])
+            .then(foundFilms => {
+              res.status(200).send(foundFilms);
+          })
+          .catch(err => res.status(404).send(err));
         })
         .catch(err => res.status(404).send(err));
   }
