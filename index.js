@@ -84,12 +84,12 @@ function getFilmRecommendations(req, res) {
                     }));
               })
             })
-            .catch(err => res.status(404).send(err));
+            .catch(err => res.status(422).send({ message: 'Unprocessable Entity' }));
           })
-          .catch(err => res.status(404).send(err));
+          .catch(err => res.status(422).send({ message: 'Unprocessable Entity' }));
   }
   else {
-    res.status(500).send('Not a film');
+    res.status(500).send({ message: 'Not a film' });
   }
 }
 
