@@ -27,6 +27,13 @@ function dateRange(date) {
   return [date1, date2];
 }
 
+function filmAverageRating(reviews) {
+  let ratingSum = 0;
+  reviews.forEach(review => ratingSum += review.rating);
+
+  return (ratingSum / reviews.length).toFixed(2);
+}
+
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
   let filmId = +req.params.id,
@@ -40,11 +47,27 @@ function getFilmRecommendations(req, res) {
 
           sqlite.all('SELECT films.id, films.title, films.release_date, name AS genre FROM films, genres WHERE genre_id = ? AND release_date BETWEEN ? AND ? AND genres.id = films.genre_id', film.genre_id, dates[0], dates[1])
             .then(foundFilms => {
-              res.status(200).send(foundFilms);
+              let filmIds = [],
+                films = {};
+
+              foundFilms.forEach(f => {
+                filmIds.push(f.id);
+                films[f.id] = f;
+              });
+
+              request(`http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${filmIds.join(',')}`, function (error, response, body) {
+                let reviews = JSON.parse(body).filter(film =>
+                  film.reviews.length > 4 && filmAverageRating(film.reviews) >= 4
+                );
+
+                console.log(reviews);
+                res.setHeader('Content-Type', 'application/json');
+                res.status(200).send(reviews);
+              })
+            })
+            .catch(err => res.status(404).send(err));
           })
           .catch(err => res.status(404).send(err));
-        })
-        .catch(err => res.status(404).send(err));
   }
   else {
     res.status(500).send('Not a film');
