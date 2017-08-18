@@ -15,6 +15,18 @@ Promise.resolve()
 // ROUTES
 app.get('/films/:id/recommendations', getFilmRecommendations);
 
+function dateRange(date) {
+  let date1,
+      date2,
+      splitDate = date.split('-'),
+      year = +splitDate[0];
+
+  date1 = (year - 15).toString() + '-' + splitDate.slice(1).join('-');
+  date2 = (year + 15).toString() + '-' + splitDate.slice(1).join('-');
+
+  return [date1, date2];
+}
+
 // ROUTE HANDLER
 function getFilmRecommendations(req, res) {
   let filmId = +req.params.id,
@@ -24,6 +36,7 @@ function getFilmRecommendations(req, res) {
   if (typeof filmId === 'number') {
     sqlite.get('SELECT * FROM films WHERE id = ?', filmId)
      		.then(film => {
+          let dates = dateRange(film.release_date);
           res.status(200).send(film);
         })
         .catch(err => res.status(404).send(err));
