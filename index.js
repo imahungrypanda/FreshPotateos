@@ -58,11 +58,30 @@ function getFilmRecommendations(req, res) {
               request(`http://credentials-api.generalassemb.ly/4576f55f-c427-4cfc-a11c-5bfe914ca6c1?films=${filmIds.join(',')}`, function (error, response, body) {
                 let reviews = JSON.parse(body).filter(film =>
                   film.reviews.length > 4 && filmAverageRating(film.reviews) >= 4
-                );
+                )
+                    recommendations = [];
 
-                console.log(reviews);
-                res.setHeader('Content-Type', 'application/json');
-                res.status(200).send(reviews);
+                    reviews.forEach(review => {
+                      let recommend = {
+                        id: review.film_id,
+                        title: films[review.film_id].title,
+                        releaseDate: films[review.film_id].release_date,
+                        genre: films[review.film_id].genre,
+                        averageRating: filmAverageRating(review.reviews),
+                        reviews: review.reviews.length
+                      };
+
+                      recommendations.push(recommend);
+                    });
+
+                    res.setHeader('Content-Type', 'application/json');
+                    res.status(200).send(JSON.stringify({
+                      recommendations: recommendations,
+                      meta: {
+                        limit: 0,
+                        offset: 0
+                      }
+                    }));
               })
             })
             .catch(err => res.status(404).send(err));
